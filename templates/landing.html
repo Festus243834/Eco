@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoCycle - Turning Waste to Wealth</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        /* Landing Page Specific Styles */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+            color: white;
+            padding: 120px 20px 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="rgba(255,255,255,0.1)"></path></svg>') no-repeat bottom;
+            background-size: cover;
+            opacity: 0.3;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .hero-section p {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-btn {
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .cta-primary {
+            background: white;
+            color: var(--primary-green);
+        }
+        
+        .cta-primary:hover {
+            background: var(--accent-yellow);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .cta-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .cta-secondary:hover {
+            background: white;
+            color: var(--primary-green);
+            transform: translateY(-3px);
+        }
+        
+        /* Stats Section */
+        .stats-section {
+            padding: 80px 20px;
+            background: var(--off-white);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px var(--shadow);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-green);
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            color: var(--dark-gray);
+        }
+        
+        /* About Section */
+        .about-section {
+            padding: 80px 20px;
+            background: white;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--dark-gray);
+            max-width: 800px;
+            margin: 0 auto 50px;
+        }
+        
+        /* How It Works Section */
+        .how-it-works {
+            padding: 80px 20px;
+            background: linear-gradient(135deg, var(--light-green) 0%, var(--off-white) 100%);
+        }
+        
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 50px auto 0;
+        }
+        
+        .step-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px var(--shadow);
+            position: relative;
+        }
+        
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 20px;
+        }
+        
+        .step-card h3 {
+            color: var(--primary-green);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .step-card p {
+            color: var(--dark-gray);
+            line-height: 1.6;
+        }
+        
+        /* Booth Locations Section */
+        .booths-section {
+            padding: 80px 20px;
+            background: white;
+        }
+        
+        #map {
+            height: 500px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 30px auto;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px var(--shadow);
+        }
+        
+        .booth-list {
+            max-width: 1200px;
+            margin: 40px auto 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .booth-card {
+            background: var(--off-white);
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-green);
+        }
+        
+        .booth-card h4 {
+            color: var(--primary-green);
+            margin-bottom: 10px;
+        }
+        
+        .booth-card p {
+            color: var(--dark-gray);
+            margin: 5px 0;
+            font-size: 0.95rem;
+        }
+        
+        /* Sponsors Section */
+        .sponsors-section {
+            padding: 80px 20px;
+            background: var(--off-white);
+        }
+        
+        .sponsors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 50px auto 0;
+        }
+        
+        .sponsor-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px var(--shadow);
+            transition: transform 0.3s ease;
+        }
+        
+        .sponsor-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .sponsor-logo {
+            width: 100%;
+            max-height: 100px;
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+        
+        .sponsor-card h4 {
+            color: var(--primary-green);
+            margin-bottom: 10px;
+        }
+        
+        /* Leaderboard Section */
+        .leaderboard-section {
+            padding: 80px 20px;
+            background: white;
+        }
+        
+        .leaderboard-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 12px 30px;
+            background: var(--light-gray);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            color: white;
+        }
+        
+        .leaderboard-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .leaderboard-item {
+            background: white;
+            padding: 20px 30px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .leaderboard-item.top-1 {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: white;
+        }
+        
+        .leaderboard-item.top-2 {
+            background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+            color: white;
+        }
+        
+        .leaderboard-item.top-3 {
+            background: linear-gradient(135deg, #CD7F32 0%, #A0522D 100%);
+            color: white;
+        }
+        
+        .rank {
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-right: 20px;
+        }
+        
+        .leaderboard-name {
+            flex-grow: 1;
+            font-weight: 600;
+        }
+        
+        .leaderboard-points {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--accent-yellow);
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-section p {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <a href="/" style="display: flex; align-items: center; text-decoration: none;">
+                        <img src="{{ url_for('static', filename='images/ecocycle-logo.png') }}" alt="EcoCycle Logo" style="height: 50px; margin-right: 10px;">
+                        <span class="logo-text">ECOCYCLE</span>
+                    </a>
+                </div>
+                
+                <div class="nav-links">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/register" class="nav-link">Register</a>
+                    <a href="/user/login" class="nav-link">Login</a>
+                    <a href="/admin/login" class="nav-link">Admin</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>Welcome to EcoCycle</h1>
+            <p>Join the movement to turn waste into wealth. Earn points by recycling, redeem amazing rewards, and help create a sustainable future for our campus.</p>
+            
+            <div class="cta-buttons">
+                <a href="/register" class="cta-btn cta-primary">Get Started</a>
+                <a href="#how-it-works" class="cta-btn cta-secondary">Learn More</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-users">0</div>
+                    <div class="stat-label">Active Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-points">0</div>
+                    <div class="stat-label">Points Generated</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-rewards">0</div>
+                    <div class="stat-label">Rewards Given</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-waste">0</div>
+                    <div class="stat-label">Waste Items Recycled</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- About Section -->
+    <section class="about-section">
+        <div class="container">
+            <h2 class="section-title">What is EcoCycle?</h2>
+            <p class="section-subtitle">
+                EcoCycle is an innovative waste management and recycling incentive platform designed to promote sustainable practices on campus. 
+                We reward students for their eco-friendly actions, turning everyday waste disposal into an opportunity to earn points and redeem exciting rewards.
+                <br><br>
+                <strong>Remember: 1kg of waste = 10 points!</strong> Every kilogram you recycle brings you closer to your next reward.
+            </p>
+        </div>
+    </section>
+    
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Start earning points in just three simple steps</p>
+            
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Register & Login</h3>
+                    <p>Create your free account and join thousands of students already making a difference through responsible waste management.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Log Your Waste</h3>
+                    <p>Visit any physical booth location, weigh your recyclable waste, and log it via our platform. Upload a photo or scan the QR code for verification. (1kg = 10 points)</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Earn & Redeem</h3>
+                    <p>Once approved by our admins, earn points instantly! Use your points to redeem exciting rewards from our catalog.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Physical Booth Locations -->
+    <section class="booths-section">
+        <div class="container">
+            <h2 class="section-title">Waste Collection Booths</h2>
+            <p class="section-subtitle">Visit our convenient locations across campus to deposit your recyclable waste</p>
+            
+            <div id="map"></div>
+            
+            <div class="booth-list" id="booth-list">
+                <!-- Booths will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- Leaderboard Section -->
+    <section class="leaderboard-section">
+        <div class="container">
+            <h2 class="section-title">Leaderboards</h2>
+            <p class="section-subtitle">See who's leading the sustainability movement</p>
+            
+            <div class="leaderboard-tabs">
+                <button class="tab-btn active" onclick="showLeaderboard('students', this)">Students</button>
+                <button class="tab-btn" onclick="showLeaderboard('departments', this)">Departments</button>
+                <button class="tab-btn" onclick="showLeaderboard('halls', this)">Halls</button>
+            </div>
+            
+            <div class="leaderboard-content" id="leaderboard-content">
+                <!-- Leaderboard will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- Sponsors Section -->
+    <section class="sponsors-section">
+        <div class="container">
+            <h2 class="section-title">Our Partners & Sponsors</h2>
+            <p class="section-subtitle">Working together for a sustainable future</p>
+            
+            <div class="sponsors-grid" id="sponsors-grid">
+                
+                   
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 EcoCycle - Turning Waste to Wealth | Building a Sustainable Future Together</p>
+        </div>
+    </footer>
+    
+    <!-- Leaflet JS for Maps -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // Fetch and display stats
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                animateNumber('total-users', data.total_users);
+                animateNumber('total-points', data.total_points_generated);
+                animateNumber('total-rewards', data.total_rewards_given);
+                animateNumber('total-waste', data.total_waste_logs);
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        // Animate number counting
+        function animateNumber(elementId, targetValue) {
+            const element = document.getElementById(elementId);
+            const duration = 2000;
+            const steps = 60;
+            const stepValue = targetValue / steps;
+            let currentValue = 0;
+            
+            const interval = setInterval(() => {
+                currentValue += stepValue;
+                if (currentValue >= targetValue) {
+                    element.textContent = targetValue.toLocaleString();
+                    clearInterval(interval);
+                } else {
+                    element.textContent = Math.floor(currentValue).toLocaleString();
+                }
+            }, duration / steps);
+        }
+        
+        // Initialize map
+        let map;
+        let userMarker;
+        
+        function initMap() {
+            // Default center (you can change this to your campus coordinates)
+            const defaultCenter = [9.0820, 8.6753]; // Example: Nigeria coordinates
+            map = L.map('map').setView(defaultCenter, 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Get user's location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userLocation = [position.coords.latitude, position.coords.longitude];
+                        map.setView(userLocation, 15);
+                        
+                        // Add user marker
+                        userMarker = L.marker(userLocation, {
+                            icon: L.icon({
+                                iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiI+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTAiIGZpbGw9IiMyZWNjNzEiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMyIvPjwvc3ZnPg==',
+                                iconSize: [32, 32],
+                                iconAnchor: [16, 16]
+                            })
+                        }).addTo(map);
+                        userMarker.bindPopup('<strong>You are here</strong>').openPopup();
+                    },
+                    (error) => {
+                        console.log('Geolocation error:', error);
+                    }
+                );
+            }
+            
+            // Load booth markers
+            loadBooths();
+        }
+        
+        // Calculate distance between two points (Haversine formula)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                     Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // Distance in km
+        }
+        
+        // Load booth locations
+        async function loadBooths() {
+            try {
+                const response = await fetch('/api/booths');
+                const data = await response.json();
+                
+                const boothList = document.getElementById('booth-list');
+                boothList.innerHTML = '';
+                
+                // Get user's location for distance calculation
+                let userLocation = null;
+                if (userMarker) {
+                    userLocation = userMarker.getLatLng();
+                }
+                
+                data.booths.forEach(booth => {
+                    // Add marker to map
+                    const marker = L.marker([booth.latitude, booth.longitude]).addTo(map);
+                    
+                    // Calculate distance if user location is available
+                    let distanceText = '';
+                    if (userLocation) {
+                        const distance = calculateDistance(
+                            userLocation.lat, userLocation.lng,
+                            booth.latitude, booth.longitude
+                        );
+                        distanceText = `<p><strong>Distance:</strong> ${distance.toFixed(2)} km from you</p>`;
+                    }
+                    
+                    marker.bindPopup(`
+                        <strong>${booth.name}</strong><br>
+                        ${booth.location_name}<br>
+                        ${booth.opening_hours ? 'Hours: ' + booth.opening_hours + '<br>' : ''}
+                        ${distanceText ? distanceText.replace(/<p>|<\/p>/g, '') : ''}
+                    `);
+                    
+                    // Add to booth list
+                    const boothCard = document.createElement('div');
+                    boothCard.className = 'booth-card';
+                    boothCard.innerHTML = `
+                        <h4>${booth.name}</h4>
+                        <p><strong>Location:</strong> ${booth.location_name}</p>
+                        ${distanceText}
+                        ${booth.opening_hours ? `<p><strong>Hours:</strong> ${booth.opening_hours}</p>` : ''}
+                        ${booth.contact ? `<p><strong>Contact:</strong> ${booth.contact}</p>` : ''}
+                        <button onclick="getDirections(${booth.latitude}, ${booth.longitude})" style="margin-top: 10px; padding: 8px 16px; background: var(--primary-green); color: white; border: none; border-radius: 5px; cursor: pointer;">Get Directions</button>
+                    `;
+                    boothList.appendChild(boothCard);
+                });
+                
+                if (data.booths.length === 0) {
+                    boothList.innerHTML = '<p style="text-align: center; color: var(--dark-gray);">No booths available yet. Check back soon!</p>';
+                }
+            } catch (error) {
+                console.error('Error loading booths:', error);
+            }
+        }
+        
+        // Get directions to a booth
+        function getDirections(lat, lng) {
+            if (userMarker) {
+                const userLatLng = userMarker.getLatLng();
+                // Open in Google Maps
+                window.open(`https://www.google.com/maps/dir/${userLatLng.lat},${userLatLng.lng}/${lat},${lng}`, '_blank');
+            } else {
+                window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+            }
+        }
+        
+        // Load sponsors
+        async function loadSponsors() {
+            try {
+                const response = await fetch('/api/sponsors');
+                const data = await response.json();
+                
+                const sponsorsGrid = document.getElementById('sponsors-grid');
+                
+                data.sponsors.forEach(sponsor => {
+                    const sponsorCard = document.createElement('div');
+                    sponsorCard.className = 'sponsor-card';
+                    sponsorCard.innerHTML = `
+                        ${sponsor.logo_path ? `<img src="/${sponsor.logo_path}" alt="${sponsor.name}" class="sponsor-logo">` : ''}
+                        <h4>${sponsor.name}</h4>
+                        ${sponsor.description ? `<p>${sponsor.description}</p>` : ''}
+                        ${sponsor.website ? `<a href="${sponsor.website}" target="_blank" style="color: var(--primary-green);">Visit Website</a>` : ''}
+                    `;
+                    sponsorsGrid.appendChild(sponsorCard);
+                });
+            } catch (error) {
+                console.error('Error loading sponsors:', error);
+            }
+        }
+        
+        // Show different leaderboards
+        let currentLeaderboard = 'students';
+        
+        async function showLeaderboard(type, eventTarget = null) {
+            currentLeaderboard = type;
+            
+            // Update active tab
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (eventTarget) {
+                eventTarget.classList.add('active');
+            } else {
+                // Find and activate the button for this type
+                const buttons = document.querySelectorAll('.tab-btn');
+                buttons.forEach(btn => {
+                    if (btn.textContent.toLowerCase().includes(type)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
+            const content = document.getElementById('leaderboard-content');
+            content.innerHTML = '<p style="text-align: center;">Loading...</p>';
+            
+            try {
+                let endpoint = '/api/stats'; // default
+                if (type === 'departments') {
+                    endpoint = '/api/leaderboard/departments';
+                } else if (type === 'halls') {
+                    endpoint = '/api/leaderboard/halls';
+                } else {
+                    // For students, we'll fetch from rewards dashboard endpoint
+                    content.innerHTML = '<p style="text-align: center;">Please <a href="/user/login">login</a> to view student leaderboard</p>';
+                    return;
+                }
+                
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                
+                content.innerHTML = '';
+                
+                const items = type === 'departments' ? data.departments : data.halls;
+                
+                items.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'leaderboard-item';
+                    if (index === 0) div.classList.add('top-1');
+                    if (index === 1) div.classList.add('top-2');
+                    if (index === 2) div.classList.add('top-3');
+                    
+                    const name = type === 'departments' ? item.department : item.hall;
+                    
+                    div.innerHTML = `
+                        <span class="rank">#${index + 1}</span>
+                        <span class="leaderboard-name">${name} (${item.student_count} students)</span>
+                        <span class="leaderboard-points">${item.total_points.toLocaleString()} pts</span>
+                    `;
+                    content.appendChild(div);
+                });
+                
+                if (items.length === 0) {
+                    content.innerHTML = '<p style="text-align: center;">No data available yet</p>';
+                }
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                content.innerHTML = '<p style="text-align: center; color: red;">Error loading leaderboard</p>';
+            }
+        }
+        
+        // Initialize everything on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            initMap();
+            loadSponsors();
+            showLeaderboard('departments'); // Load departments by default
+        });
+        
+        console.log('EcoCycle landing page initialized! 🌱');
+    </script>
+</body>
+</html>

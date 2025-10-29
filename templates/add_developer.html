@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Add Developer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title fade-in">Add Developer Profile</h1>
+    </div>
+</div>
+
+<div class="admin-section">
+    <div class="container">
+        <div class="admin-card slide-up">
+            <form id="addDeveloperForm" class="admin-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="name">Developer Name</label>
+                    <input type="text" id="name" name="name" required placeholder="Enter developer name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <input type="text" id="role" name="role" required placeholder="e.g., Lead Developer, UI/UX Designer">
+                </div>
+                
+                <div class="form-group">
+                    <label for="bio">Bio (optional)</label>
+                    <textarea id="bio" name="bio" rows="3" placeholder="Enter developer bio"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="image">Profile Image (optional)</label>
+                    <input type="file" id="image" name="image" accept="*">
+                    <small>Accepts all image file types</small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <span>Add Developer</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('addDeveloperForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('/admin/add-developer', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            e.target.reset();
+        } else {
+            alert('Failed to add developer');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+    }
+});
+</script>
+{% endblock %}

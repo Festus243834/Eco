@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Add Booth Location{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title fade-in">Add Waste Collection Booth</h1>
+    </div>
+</div>
+
+<div class="form-section">
+    <div class="container">
+        <div class="form-container slide-up">
+            <form id="addBoothForm">
+                <div class="form-group">
+                    <label for="name">Booth Name *</label>
+                    <input type="text" id="name" name="name" required placeholder="e.g., Main Campus Booth">
+                </div>
+                
+                <div class="form-group">
+                    <label for="location_name">Location Description *</label>
+                    <input type="text" id="location_name" name="location_name" required placeholder="e.g., Behind the Library, near Gate 2">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="latitude">Latitude *</label>
+                        <input type="number" id="latitude" name="latitude" step="0.000001" required placeholder="9.0820">
+                        <small>Use a map tool to get coordinates</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="longitude">Longitude *</label>
+                        <input type="number" id="longitude" name="longitude" step="0.000001" required placeholder="8.6753">
+                        <small>Use a map tool to get coordinates</small>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="opening_hours">Opening Hours</label>
+                    <input type="text" id="opening_hours" name="opening_hours" placeholder="e.g., Mon-Fri: 8AM-6PM">
+                </div>
+                
+                <div class="form-group">
+                    <label for="contact">Contact Information</label>
+                    <input type="text" id="contact" name="contact" placeholder="e.g., +234 XXX XXX XXXX">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <span>Add Booth Location</span>
+                </button>
+                
+                <a href="/admin/dashboard" class="btn btn-secondary" style="margin-left: 10px;">
+                    <span>Cancel</span>
+                </a>
+            </form>
+            
+            <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                <h3 style="margin-bottom: 10px;">💡 Tip: Getting Coordinates</h3>
+                <p>To find the exact latitude and longitude:</p>
+                <ol style="margin-left: 20px;">
+                    <li>Open Google Maps</li>
+                    <li>Right-click on the exact booth location</li>
+                    <li>Click on the coordinates to copy them</li>
+                    <li>Paste them into the form above</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('addBoothForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('/admin/add-booth', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Booth location added successfully!');
+            window.location.href = '/admin/dashboard';
+        } else {
+            alert(data.message || 'Failed to add booth');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+    }
+});
+</script>
+{% endblock %}

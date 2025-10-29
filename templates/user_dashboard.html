@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title fade-in" style="font-size: 2.5rem;">Welcome, @{{ user.username }}!</h1>
+        <p class="page-subtitle">Your Ecocycle Dashboard</p>
+    </div>
+</div>
+
+<div class="dashboard-section">
+    <div class="container">
+        <!-- User Stats Card -->
+        <div class="stats-card slide-up">
+            <h2>Your Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon">👤</div>
+                    <div class="stat-content">
+                        <h3 style="font-size: 1.5rem;">@{{ user.username }}</h3>
+                        <p>{{ user.department }}</p>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">📞</div>
+                    <div class="stat-content">
+                        <h3 style="font-size: 1.2rem;">{{ user.phone }}</h3>
+                        <p>Phone Number</p>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-content">
+                        <h3 class="animated-counter" data-target="{{ user.points }}">0</h3>
+                        <p>Total Points</p>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">♻️</div>
+                    <div class="stat-content">
+                        <h3>{{ total_waste_logs }}</h3>
+                        <p>Waste Logs</p>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">🎁</div>
+                    <div class="stat-content">
+                        <h3>{{ redeemed_rewards|length }}</h3>
+                        <p>Rewards Redeemed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="quick-actions slide-up">
+            <h2>Quick Actions</h2>
+            <div class="actions-grid">
+                <a href="{{ url_for('waste_logs') }}" class="action-card">
+                    <div class="action-icon">📝</div>
+                    <h3>Log Waste</h3>
+                    <p>Record your recycling activity</p>
+                </a>
+                
+                <a href="{{ url_for('available_rewards') }}" class="action-card">
+                    <div class="action-icon">🎁</div>
+                    <h3>Browse Rewards</h3>
+                    <p>See what you can redeem</p>
+                </a>
+                
+                <a href="{{ url_for('rewards_dashboard') }}" class="action-card">
+                    <div class="action-icon">🏆</div>
+                    <h3>Leaderboard</h3>
+                    <p>See top recyclers</p>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="redeemed-section slide-up">
+            <h2>Recent Waste Logs</h2>
+            {% if recent_logs %}
+            <div class="redeemed-list">
+                {% for log in recent_logs %}
+                <div class="redeemed-item">
+                    <div class="redeemed-icon">
+                        {% if log.approval_status == 'approved' %}✓
+                        {% elif log.approval_status == 'rejected' %}✗
+                        {% else %}⏳
+                        {% endif %}
+                    </div>
+                    <div class="redeemed-content">
+                        <h3>{{ log.waste_type }}</h3>
+                        <p class="redeemed-points">{{ log.quantity }} items - {{ log.points_earned }} points</p>
+                        <p class="redeemed-date">{{ log.logged_at[:19] }} - 
+                            <span style="color: 
+                            {% if log.approval_status == 'approved' %}#27ae60
+                            {% elif log.approval_status == 'rejected' %}#e74c3c
+                            {% else %}#f39c12
+                            {% endif %}; font-weight: 600;">
+                                {{ log.approval_status.capitalize() }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="no-data">You haven't logged any waste yet. Start now!</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.quick-actions {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.action-card {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+    text-decoration: none;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
+}
+
+.action-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.action-card h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: white;
+}
+
+.action-card p {
+    font-size: 14px;
+    opacity: 0.9;
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function animateCounter() {
+    const counter = document.querySelector('.animated-counter');
+    if (!counter) return;
+    
+    const target = parseInt(counter.getAttribute('data-target'));
+    const duration = 2000;
+    const step = target / (duration / 16);
+    let current = 0;
+    
+    const timer = setInterval(() => {
+        current += step;
+        if (current >= target) {
+            counter.textContent = target;
+            clearInterval(timer);
+        } else {
+            counter.textContent = Math.floor(current);
+        }
+    }, 16);
+}
+
+document.addEventListener('DOMContentLoaded', animateCounter);
+</script>
+{% endblock %}

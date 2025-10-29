@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Add Reward{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title fade-in">Add New Reward</h1>
+    </div>
+</div>
+
+<div class="admin-section">
+    <div class="container">
+        <div class="admin-card slide-up">
+            <form id="addRewardForm" class="admin-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="name">Reward Name</label>
+                    <input type="text" id="name" name="name" required placeholder="Enter reward name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="3" placeholder="Enter reward description"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="points_required">Points Required</label>
+                    <input type="number" id="points_required" name="points_required" min="1" required placeholder="Enter points required">
+                </div>
+                
+                <div class="form-group">
+                    <label for="image">Reward Image (optional)</label>
+                    <input type="file" id="image" name="image" accept="*">
+                    <small>Accepts all image file types</small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <span>Add Reward</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('addRewardForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('/admin/add-reward', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            e.target.reset();
+        } else {
+            alert('Failed to add reward');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+    }
+});
+</script>
+{% endblock %}

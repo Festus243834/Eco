@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Waste Logs{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title fade-in">Waste Logs</h1>
+        <div class="points-display fade-in">
+            <span class="points-label">Your Points:</span>
+            <span class="points-value" id="currentPoints">{{ points }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="waste-logs-section">
+    <div class="container">
+        <!-- Search Bar -->
+        <div class="search-container slide-up">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search by waste type or date...">
+        </div>
+        
+        <!-- Waste Categories -->
+        <div class="categories-section slide-up">
+            <h2>Waste Categories</h2>
+            <div class="categories-grid">
+                <div class="category-card" data-category="Plastic Bottles">
+                    <div class="category-icon">🍾</div>
+                    <h3>Plastic Bottles</h3>
+                    <button class="btn btn-add" onclick="openAddWasteModal('Plastic Bottles')">
+                        <span>+ Add Waste</span>
+                    </button>
+                </div>
+                
+                <div class="category-card" data-category="Food Waste">
+                    <div class="category-icon">🍎</div>
+                    <h3>Food Waste</h3>
+                    <button class="btn btn-add" onclick="openAddWasteModal('Food Waste')">
+                        <span>+ Add Waste</span>
+                    </button>
+                </div>
+                
+                <div class="category-card" data-category="Paper">
+                    <div class="category-icon">📄</div>
+                    <h3>Paper</h3>
+                    <button class="btn btn-add" onclick="openAddWasteModal('Paper')">
+                        <span>+ Add Waste</span>
+                    </button>
+                </div>
+                
+                <div class="category-card" data-category="Plastic Bags">
+                    <div class="category-icon">🛍️</div>
+                    <h3>Plastic Bags</h3>
+                    <button class="btn btn-add" onclick="openAddWasteModal('Plastic Bags')">
+                        <span>+ Add Waste</span>
+                    </button>
+                </div>
+                
+                <div class="category-card" data-category="Cans">
+                    <div class="category-icon">🥫</div>
+                    <h3>Cans</h3>
+                    <button class="btn btn-add" onclick="openAddWasteModal('Cans')">
+                        <span>+ Add Waste</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Waste Logs History -->
+        <div class="logs-section slide-up">
+            <h2>Your Waste Log History</h2>
+            <div class="logs-table-container">
+                <table class="logs-table" id="logsTable">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Quantity</th>
+                            <th>Status</th>
+                            <th>Points</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if logs %}
+                            {% for log in logs %}
+                            <tr class="log-row">
+                                <td>{{ log.waste_type }}</td>
+                                <td>{{ log.quantity }}</td>
+                                <td>
+                                    {% if log.approval_status == 'approved' %}
+                                    <span class="badge badge-success">✓ Approved</span>
+                                    {% elif log.approval_status == 'pending' %}
+                                    <span class="badge badge-warning">⏳ Pending</span>
+                                    {% else %}
+                                    <span class="badge badge-danger">✗ Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td class="points-cell">{{ log.points_earned }} pts</td>
+                                <td>{{ log.logged_at[:19] }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="no-data">No waste logs yet. Start by adding waste!</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Waste Modal with Scanner -->
+<div id="addWasteModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close" onclick="closeAddWasteModal()">&times;</span>
+        <h2>Add Waste Log</h2>
+        
+        <!-- Scanner Section -->
+        <div id="scannerSection" style="margin-bottom: 20px;">
+            <h3 style="color: #2ecc71; font-size: 1.2rem; margin-bottom: 10px;">📱 Scan Barcode/QR Code</h3>
+            <div id="reader" style="width: 100%; border-radius: 10px; overflow: hidden;"></div>
+            <p id="scanResult" style="margin-top: 10px; color: #2ecc71; font-weight: 600;"></p>
+        </div>
+        
+        <form id="addWasteForm">
+            <div class="form-group">
+                <label for="wasteType">Waste Type</label>
+                <input type="text" id="wasteType" name="waste_type" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="scannedCode">Scanned Code *</label>
+                <input type="text" id="scannedCode" name="scanned_code" readonly placeholder="Please scan a barcode/QR code" required>
+                <small style="color: #e74c3c;">Required: Must scan before submitting</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+                <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                <span>Add Waste (Pending Approval)</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- HTML5 QR Code Scanner Library -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+// QR/Barcode Scanner
+let html5QrcodeScanner;
+
+// Modal functions
+function openAddWasteModal(wasteType) {
+    document.getElementById('wasteType').value = wasteType;
+    document.getElementById('addWasteModal').style.display = 'block';
+    
+    // Initialize scanner
+    if (!html5QrcodeScanner) {
+        html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader",
+            { 
+                fps: 10,
+                qrbox: {width: 250, height: 250},
+                supportedScanTypes: [
+                    Html5QrcodeScanType.SCAN_TYPE_CAMERA,
+                    Html5QrcodeScanType.SCAN_TYPE_FILE
+                ]
+            },
+            false
+        );
+        
+        html5QrcodeScanner.render(onScanSuccess, onScanError);
+    }
+}
+
+function closeAddWasteModal() {
+    document.getElementById('addWasteModal').style.display = 'none';
+    document.getElementById('addWasteForm').reset();
+    document.getElementById('scannedCode').value = '';
+    document.getElementById('scanResult').textContent = '';
+    document.getElementById('submitBtn').disabled = true;
+    
+    // Clear scanner
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear();
+        html5QrcodeScanner = null;
+    }
+}
+
+function onScanSuccess(decodedText, decodedResult) {
+    // Handle successful scan
+    document.getElementById('scannedCode').value = decodedText;
+    document.getElementById('scanResult').textContent = `✓ Scanned: ${decodedText}`;
+    document.getElementById('submitBtn').disabled = false;
+    
+    // Stop scanning after successful scan
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear();
+        html5QrcodeScanner = null;
+    }
+}
+
+function onScanError(error) {
+    // Ignore scan errors (they're frequent during scanning)
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('addWasteModal');
+    if (event.target == modal) {
+        closeAddWasteModal();
+    }
+}
+
+// Add waste form submission
+document.getElementById('addWasteForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('/add-waste', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`Success! You earned ${data.points_earned} points!`);
+            location.reload();
+        } else {
+            alert(data.message || 'Failed to add waste');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+    }
+});
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.log-row');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

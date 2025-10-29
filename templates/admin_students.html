@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Student Management{% endblock %}
+
+{% block content %}
+<!-- Admin Navigation -->
+<div class="admin-nav">
+    <div class="container">
+        <div class="admin-nav-links">
+            <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link">📊 Dashboard</a>
+            <a href="{{ url_for('admin_students') }}" class="admin-nav-link" style="background: #2ecc71; color: white;">👥 Students</a>
+            <a href="{{ url_for('add_reward') }}" class="admin-nav-link">🎁 Add Reward</a>
+            <a href="{{ url_for('add_developer') }}" class="admin-nav-link">👨‍💻 Add Developer</a>
+            <a href="{{ url_for('add_booth') }}" class="admin-nav-link">📍 Add Booth</a>
+            <a href="{{ url_for('add_sponsor') }}" class="admin-nav-link">🤝 Add Sponsor</a>
+            <a href="{{ url_for('navbar_settings') }}" class="admin-nav-link">🎨 Navbar Settings</a>
+            <a href="{{ url_for('admin_logout') }}" class="admin-nav-link" style="margin-left: auto;">🚪 Logout</a>
+        </div>
+    </div>
+</div>
+
+<div class="container" style="padding: 40px 20px;">
+    <h1 style="color: #2ecc71; margin-bottom: 10px;">Student Management</h1>
+    <p style="color: #7f8c8d; margin-bottom: 30px;">Total Students: {{ students|length }}</p>
+    
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by name, department, or hall...">
+    </div>
+    
+    <!-- Students Table -->
+    <div class="admin-section">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Department</th>
+                    <th>Hall/Residence</th>
+                    <th>Points</th>
+                    <th>Waste Logs</th>
+                    <th>Joined</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="studentsTable">
+                {% for student in students %}
+                <tr class="student-row" id="student-row-{{ student.id }}">
+                    <td>{{ student.id }}</td>
+                    <td><strong>{{ student.name }}</strong><br><small>@{{ student.username }}</small></td>
+                    <td>{{ student.phone }}</td>
+                    <td>{{ student.department }}</td>
+                    <td><span class="badge badge-success">{{ student.residence }}</span></td>
+                    <td>{{ student.points }}</td>
+                    <td>{{ student.total_logs }}</td>
+                    <td>{{ student.created_at[:10] }}</td>
+                    <td id="status-{{ student.id }}">
+                        {% if student.is_active == 1 %}
+                        <span class="badge badge-success">Active</span>
+                        {% else %}
+                        <span class="badge badge-danger">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            {% if student.is_active == 1 %}
+                            <button onclick="deactivateStudent({{ student.id }})" class="action-btn btn-deactivate" style="background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">Deactivate</button>
+                            {% else %}
+                            <button onclick="activateStudent({{ student.id }})" class="action-btn btn-activate" style="background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">Activate</button>
+                            {% endif %}
+                            <button onclick="deleteStudent({{ student.id }})" class="action-btn btn-delete" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .admin-nav {
+        background: white;
+        padding: 15px 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .admin-nav-links {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .admin-nav-link {
+        color: #2ecc71;
+        text-decoration: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        transition: all 0.3s;
+    }
+    
+    .admin-nav-link:hover {
+        background: #2ecc71;
+        color: white;
+    }
+    
+    .admin-section {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-top: 20px;
+    }
+    
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .admin-table th,
+    .admin-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ecf0f1;
+    }
+    
+    .admin-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .admin-table tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .badge-success { background: #d4edda; color: #155724; }
+    .badge-danger { background: #f8d7da; color: #721c24; }
+    
+    .action-btn {
+        transition: all 0.2s;
+    }
+    
+    .action-btn:hover {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+</style>
+
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.student-row');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Deactivate student
+function deactivateStudent(studentId) {
+    if (confirm('Are you sure you want to deactivate this student account?')) {
+        fetch(`/admin/deactivate-student/${studentId}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                location.reload();
+            } else {
+                showNotification(data.message, 'error');
+            }
+        });
+    }
+}
+
+// Activate student
+function activateStudent(studentId) {
+    fetch(`/admin/activate-student/${studentId}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            location.reload();
+        } else {
+            showNotification(data.message, 'error');
+        }
+    });
+}
+
+// Delete student
+function deleteStudent(studentId) {
+    if (confirm('Are you sure you want to DELETE this student? This action cannot be undone and will remove all their data including waste logs and redeemed rewards.')) {
+        fetch(`/admin/delete-user/${studentId}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                document.getElementById(`student-row-${studentId}`).remove();
+            } else {
+                showNotification(data.message, 'error');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ecocycle{% endblock %} - Waste Management System</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar" id="mainNavbar">
+        <div class="container">
+            <div class="nav-content">
+                <!-- Logo Placeholder -->
+                <div class="logo">
+                    <img src="{{ url_for('static', filename='images/ecocycle-logo.png') }}" alt="EcoCycle Logo" style="height: 50px; margin-right: 10px;">
+
+                        <span class="logo-text">ECOCYCLE</span>
+                    </div>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="nav-links" id="navLinks">
+                    <a href="{{ url_for('landing') }}" class="nav-link">Home</a>
+                    <a href="{{ url_for('about') }}" class="nav-link">About</a>
+                    <a href="{{ url_for('contact') }}" class="nav-link">Contact</a>
+                    {% if session.student_id %}
+                    <a href="{{ url_for('waste_logs') }}" class="nav-link">Waste Logs</a>
+                    <a href="{{ url_for('available_rewards') }}" class="nav-link">Rewards</a>
+                    <a href="{{ url_for('user_dashboard') }}" class="nav-link">Dashboard</a>
+                    <a href="{{ url_for('logout') }}" class="nav-link logout-btn">Logout</a>
+                    {% endif %}
+                </div>
+                
+                <!-- Mobile Menu Toggle -->
+                <div class="menu-toggle" id="menuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Ecocycle - Turning Waste to Wealth</p>
+        </div>
+    </footer>
+    
+    <!-- Main JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <!-- Apply navbar background if set -->
+    <script>
+        fetch('/api/site-settings')
+            .then(response => response.json())
+            .then(data => {
+                if (data.navbar_bg_image) {
+                    const navbar = document.getElementById('mainNavbar');
+                    if (navbar) {
+                        navbar.style.backgroundImage = `url('/${data.navbar_bg_image}')`;
+                        navbar.style.backgroundSize = 'cover';
+                        navbar.style.backgroundPosition = 'center';
+                    }
+                }
+            })
+            .catch(error => console.log('No navbar background set'));
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

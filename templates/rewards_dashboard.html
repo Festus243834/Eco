@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Rewards Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title fade-in">Rewards Dashboard</h1>
+    </div>
+</div>
+
+<div class="dashboard-section">
+    <div class="container">
+        <!-- User Stats Card -->
+        <div class="stats-card slide-up">
+            <h2>Your Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon">👤</div>
+                    <div class="stat-content">
+                        <h3>{{ student.name }}</h3>
+                        <p>{{ student.department }}</p>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-content">
+                        <h3 class="animated-counter" data-target="{{ student.points }}">0</h3>
+                        <p>Total Points</p>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-icon">🎁</div>
+                    <div class="stat-content">
+                        <h3>{{ redeemed_rewards|length }}</h3>
+                        <p>Rewards Redeemed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Redeemed Rewards Section -->
+        <div class="redeemed-section slide-up">
+            <h2>Your Redeemed Rewards</h2>
+            {% if redeemed_rewards %}
+            <div class="redeemed-list">
+                {% for reward in redeemed_rewards %}
+                <div class="redeemed-item">
+                    <div class="redeemed-icon">✓</div>
+                    <div class="redeemed-content">
+                        <h3>{{ reward.name }}</h3>
+                        <p class="redeemed-points">{{ reward.points_required }} points</p>
+                        <p class="redeemed-date">{{ reward.redeemed_at[:19] }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="no-data">You haven't redeemed any rewards yet.</p>
+            {% endif %}
+        </div>
+        
+        <!-- Leaderboard Section -->
+        <div class="leaderboard-section slide-up">
+            <h2>🏆 Leaderboard</h2>
+            <p class="section-subtitle">Top Environmental Champions</p>
+            
+            <div class="leaderboard-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in leaderboard %}
+                        <tr class="leaderboard-row {% if loop.index <= 3 %}top-{{ loop.index }}{% endif %}">
+                            <td class="rank-cell">
+                                {% if loop.index == 1 %}🥇
+                                {% elif loop.index == 2 %}🥈
+                                {% elif loop.index == 3 %}🥉
+                                {% else %}{{ loop.index }}
+                                {% endif %}
+                            </td>
+                            <td>{{ student.name }}</td>
+                            <td>{{ student.department }}</td>
+                            <td class="points-cell">{{ student['total_points_earned'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animated counter for points
+function animateCounter() {
+    const counter = document.querySelector('.animated-counter');
+    if (!counter) return;
+    
+    const target = parseInt(counter.getAttribute('data-target'));
+    const duration = 2000;
+    const step = target / (duration / 16);
+    let current = 0;
+    
+    const timer = setInterval(() => {
+        current += step;
+        if (current >= target) {
+            counter.textContent = target;
+            clearInterval(timer);
+        } else {
+            counter.textContent = Math.floor(current);
+        }
+    }, 16);
+}
+
+// Run animation on page load
+document.addEventListener('DOMContentLoaded', animateCounter);
+</script>
+{% endblock %}

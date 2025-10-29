@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Navbar Settings{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">Navbar Settings</h1>
+        <p class="page-subtitle">Customize your navbar background image</p>
+    </div>
+</div>
+
+<div class="registration-section">
+    <div class="container">
+        <div class="registration-card" style="max-width: 600px; margin: 0 auto;">
+            <h2>Upload Navbar Background Image</h2>
+            
+            {% if settings and settings.navbar_bg_image %}
+            <div class="current-bg-preview" style="margin: 20px 0;">
+                <h3>Current Background</h3>
+                <img src="{{ url_for('serve_uploaded_file', filename=settings.navbar_bg_image.replace('uploads/', '')) }}" 
+                     style="max-width: 100%; border-radius: 10px; margin: 10px 0;" alt="Current navbar background">
+                <button onclick="removeNavbarBg()" class="btn btn-danger" style="background: #e74c3c; width: 100%;">Remove Background</button>
+            </div>
+            {% endif %}
+            
+            <form id="navbarSettingsForm" enctype="multipart/form-data" onsubmit="submitNavbarSettings(event)">
+                <div class="form-group">
+                    <label for="navbar_bg">Upload New Background Image</label>
+                    <input type="file" id="navbar_bg" name="navbar_bg" accept="image/*" required>
+                    <small>Recommended size: 1920x200px. Supported formats: JPG, PNG, WebP</small>
+                </div>
+                
+                <button type="submit" class="btn btn-submit">Upload Background</button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary" style="background: #95a5a6; margin-left: 10px;">Back to Dashboard</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitNavbarSettings(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    fetch('{{ url_for("navbar_settings") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('An error occurred', 'error');
+    });
+}
+
+function removeNavbarBg() {
+    if (confirm('Are you sure you want to remove the navbar background image?')) {
+        fetch('{{ url_for("remove_navbar_bg") }}', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showNotification(data.message, 'error');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

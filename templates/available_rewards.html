@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Available Rewards{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title fade-in">Available Rewards</h1>
+        <div class="points-display fade-in">
+            <span class="points-label">Your Points:</span>
+            <span class="points-value">{{ points }}</span>
+        </div>
+    </div>
+</div>
+
+<div class="rewards-section">
+    <div class="container">
+        <!-- Search Bar -->
+        <div class="search-container slide-up">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search rewards by name...">
+        </div>
+        
+        <!-- Rewards Grid -->
+        <div class="rewards-grid slide-up">
+            {% if rewards %}
+                {% for reward in rewards %}
+                <div class="reward-card" data-name="{{ reward.name }}">
+                    <div class="reward-image">
+                        {% if reward.image_path %}
+                        <img src="/{{ reward.image_path }}" alt="{{ reward.name }}">
+                        {% else %}
+                        <div class="reward-placeholder">
+                            <span>🎁</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="reward-content">
+                        <h3>{{ reward.name }}</h3>
+                        {% if reward.description %}
+                        <p class="reward-description">{{ reward.description }}</p>
+                        {% endif %}
+                        <div class="reward-footer">
+                            <div class="reward-points">
+                                <span class="points-required">{{ reward.points_required }}</span> points
+                            </div>
+                            <button 
+                                class="btn btn-redeem {% if points < reward.points_required %}btn-disabled{% endif %}"
+                                onclick="redeemReward({{ reward.id }}, '{{ reward.name }}', {{ reward.points_required }})"
+                                {% if points < reward.points_required %}disabled{% endif %}>
+                                <span>Redeem</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="no-rewards">
+                <p>No rewards available yet.</p>
+                <p class="admin-note">Add rewards via <a href="{{ url_for('add_reward') }}">Admin Panel</a></p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content">
+        <h2>Confirm Redemption</h2>
+        <p id="confirmMessage"></p>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+            <button class="btn btn-primary" id="confirmBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentRewardId = null;
+
+function redeemReward(rewardId, rewardName, pointsRequired) {
+    currentRewardId = rewardId;
+    document.getElementById('confirmMessage').textContent = 
+        `Are you sure you want to redeem "${rewardName}" for ${pointsRequired} points?`;
+    document.getElementById('confirmModal').style.display = 'block';
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+    currentRewardId = null;
+}
+
+document.getElementById('confirmBtn').addEventListener('click', async () => {
+    if (!currentRewardId) return;
+    
+    const formData = new FormData();
+    formData.append('reward_id', currentRewardId);
+    
+    try {
+        const response = await fetch('/redeem-reward', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.message || 'Failed to redeem reward');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+    }
+    
+    closeConfirmModal();
+});
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const cards = document.querySelectorAll('.reward-card');
+    
+    cards.forEach(card => {
+        const name = card.getAttribute('data-name').toLowerCase();
+        card.style.display = name.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('confirmModal');
+    if (event.target == modal) {
+        closeConfirmModal();
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}User Login{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content fade-in">
+            <h1 class="hero-title">Welcome Back to Ecocycle</h1>
+            <p class="hero-subtitle">Continue your journey to turn waste into wealth</p>
+        </div>
+    </div>
+</div>
+
+<div class="registration-section">
+    <div class="container">
+        <div class="registration-card slide-up">
+            <h2>User Login</h2>
+            <p class="card-subtitle">Access your account</p>
+            
+            <form id="loginForm" class="registration-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="Enter your username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Enter your password">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <span>Login</span>
+                </button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <p style="color: #666;">Don't have an account? <a href="{{ url_for('index') }}" style="color: #27ae60; font-weight: 600;">Register here</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('/user/login', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.href = data.redirect;
+        } else {
+            alert(data.message || 'Login failed');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred during login');
+    }
+});
+</script>
+{% endblock %}
